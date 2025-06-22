@@ -1,0 +1,9 @@
+train: C:/Users/wwhac/Desktop/YOLOv8n-Enhanced/datasets/bccd-test/train
+val: C:/Users/wwhac/Desktop/YOLOv8n-Enhanced/datasets/bccd-test/valid
+test: C:/Users/wwhac/Desktop/YOLOv8n-Enhanced/datasets/bccd-test/test
+
+nc: 3
+names:
+  0: Platelets
+  1: RBC
+  2: WBC

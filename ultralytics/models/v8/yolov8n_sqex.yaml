@@ -1,0 +1,48 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
+# Parameters
+nc: 80  # number of classes
+depth_multiple: 0.33  # scales module repeats
+width_multiple: 0.25  # scales convolution channels
+
+# YOLOv8.0n backbone với SE
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [ 64, 3, 2]]    # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]    # 1-P2/4
+  - [-1, 3, C2f,  [128, True]]    # 2 (output channels: 128)
+  - [-1, 1, SqEx, [32]]           # 3→ SqEx
+  - [-1, 1, Conv, [256, 3, 2]]    # 4-P3/8                   x3
+  - [-1, 6, C2f,  [256, True]]    # 5 (output channels: 256) x4
+  - [-1, 1, SqEx, [64]]           # 6→ SqEx
+  - [-1, 1, Conv, [512, 3, 2]]    # 7-P4/16
+  - [-1, 6, C2f,  [512, True]]    # 8 (output channels: 512) x6
+  - [-1, 1, SqEx, [128]]          # 9→ SqEx
+  - [-1, 1, Conv, [1024, 3, 2]]   # 10-P5/32
+  - [-1, 3, C2f,  [1024, True]]   # 11 (output channels: 1024)
+  - [-1, 1, SqEx, [256]]          # 12→ SqEx
+  - [-1, 1, SPPF, [1024, 5]]      # 13                       x9
+
+# YOLOv8.0n head với SE
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']] # 14
+  - [[-1, 9], 1, Concat, [1]]                  # 15 cat backbone P4
+  - [-1, 4, C2f, [512]]                        # 16 (output channels: 512) x12
+  - [-1, 1, SqEx,[128]]                        # 17→ SqEx
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']] # 18 
+  - [[-1, 6], 1, Concat, [1]]                  # 19 cat backbone P3
+  - [-1, 4, C2f, [256]]                        # 20 (output channels: 256)
+  - [-1, 1, SqEx,[64]]                         # 21→ SqEx
+
+  - [-1, 1, Conv, [256, 3, 2]]                 # 22
+  - [[-1, 17], 1, Concat, [1]]                 # 23 cat head P4
+  - [-1, 4, C2f,  [512]]                       # 24 (output channels: 512)
+  - [-1, 1, SqEx, [128]]                       # 25→ SqEx
+
+  - [-1, 1, Conv, [512, 3, 2]]                 # 26
+  - [[-1, 13], 1, Concat, [1]]                 # 27 cat head P5
+  - [-1, 4, C2f,  [1024]]                      # 28 (output channels: 1024)
+  - [-1, 1, SqEx, [256]]                       # 29→ SqEx
+
+  - [[21, 25, 29], 1, Detect, [nc]]  # Detect(P3, P4, P5)
